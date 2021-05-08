@@ -23,6 +23,7 @@ m.sendMsg('/knurl/trigger',  'Reus',1) ;
 ```
 
 ## At this link you can find a list of the available synths at the moment:
+https://www.knurl-lab.in/about/knurl/the-platform/collaborator
 
 ## To stop, you write the name, after a 0:
 

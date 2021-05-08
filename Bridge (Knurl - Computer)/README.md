@@ -1,11 +1,15 @@
 
+## BRIDGE KNURL - COLLABORATOR/WEBPLATFORM
+
+```
                     Knurl              |    Computer bridge               |     Platform or other Collaborator
 ip adress         192.168.3.2          |          x                       |                x
 port                 6000              |         7000                     |               8000
 
+```
 
 
-Send messages to Knurl through:
+## Send messages to Knurl through:
 
 ```
 m = NetAddr.new("192.168.30.1", 6000 );

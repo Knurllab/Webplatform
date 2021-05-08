@@ -15,7 +15,7 @@ port                 6000              |         7000                     |     
 m = NetAddr.new("192.168.30.1", 6000 );
 ```
 
-## In order to play a synth, you have to write the name of the sytnh and 1:
+## In order to play a synth, you have to write the name of the sytnh and the number 1:
 
 ```
 m.sendMsg('/knurl/trigger',  'Ambience',1) ;
@@ -25,7 +25,7 @@ m.sendMsg('/knurl/trigger',  'Reus',1) ;
 ## At this link you can find a list of the available synths at the moment:
 https://www.knurl-lab.in/about/knurl/the-platform/collaborator
 
-## To stop, you write the name, after a 0:
+## To stop, you may write the name of synth and the number 0:
 
 ```
 m.sendMsg('/knurl/trigger',  'Ambience', 0) ;

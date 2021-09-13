@@ -9,7 +9,10 @@ https://github.com/driangle/starfish-bridge
 Components include: 
 - Knurl Brigde (bridge from OSC to Knurl instrument)
 - starfish-bridge (back end server handling all communications)
-- front end interface (audience & core: graphical interface for interaction & display)
+- Front End interface (audience & core: graphical interface for interaction & display) 
+
+The Front End 'core' page initiates messages to the audience & to the Knurl Bridge. 
+The Front End 'audience' page initiates messages to the core page. 
 
 ### Front End 
 

@@ -4,8 +4,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const core = {};
 
     const starfish = StarfishClient.build({
-        url: "ws://192.168.0.30:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
         //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
+        url: "ws://172.20.2.89:9000", // replace IP with the IP of the computer running the server
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -24,36 +25,37 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const sketch = new p5((p) => {
 
+        let gui;
+        let sliders = [];
+
         let state = 0;
 
         let groupnum;
-        let groupalone;
+        let active = 1;
 
         let variable = 0;
 
         //send / click interaction
         let downready = true;
         let isdown = false;
-        let shapeActivated = false;
-        //button
-        let buttonPressed = false;
 
         let c = []; //color array
 
-        let points = [];
         // Choose color
         let color = { r: 0, g: 0, b: 0 }
         const start = { status: false };
-        const connect =  { status: false };
+        const connect =  { status: false }; //whats the difference between connect & start?
         const finalgroupnum = { num: 0 };
-        const thevar = { num: 0 };
-        const thesize = { num: 0 };
-        const theradius = { num: 0 };
-        const thespeed = { num: 0 };
 
+        const thevar = { num: 0 };
 
         p.setup = () => {
-            p.createCanvas(window.innerWidth, window.innerHeight);
+            let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+            gui = p.createGui(canvas);
+            sliders[0] = p.createSliderV("Slider"+0, p.width/5*1-20, 100, 40, p.height-200, 25, 250);
+            sliders[1] = p.createSliderV("Slider"+1, p.width/5*2-20, 100, 40, p.height-200, 25, 250);
+            sliders[2] = p.createSliderV("Slider"+2, p.width/5*3-20, 100, 40, p.height-200, 25, 250);
+            sliders[3] = p.createSliderV("Slider"+3, p.width/5*4-20, 100, 40, p.height-200, 25, 250);
             
             p.rectMode(p.CENTER);
             p.textAlign(p.CENTER);
@@ -62,16 +64,6 @@ window.addEventListener('DOMContentLoaded', () => {
             groupnum = p.floor(p.random(4));
 
             finalgroupnum.num = groupnum;
-            thevar.num = variable;
-            thesize.num = p.floor(p.random(15, 40));
-            theradius.num = p.floor(p.random(100, 380));
-            thespeed.num = p.floor(p.random(300, 1000));
-            
-            // c[0] = p.createVector(178, 31, 53);
-            // c[1] = p.createVector(255, 203, 53);
-            // c[2] = p.createVector(0, 117, 58);
-            // c[3] = p.createVector(0, 82, 165);
-            //old RGB colors
 
             p.colorMode(p.HSB, 100);
             //244°, 71%, 76%
@@ -94,8 +86,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
             Object.values(core).forEach(member => {
                 const recState = member.state;
-                const recAlone = member.alone;
-                groupalone = recAlone;
+                const recActive = member.active;
+                //console.log(recActive);
+                active = recActive[groupnum];
+                //console.log(active);
 
                 if(state != recState) {
                     state = recState;
@@ -105,7 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 //console.log(recState);
             })
 
-            p.rectMode(p.CENTER);
+
             switch(state) { 
                 case 0:
                     p.background(color.r, color.g, color.b);
@@ -123,109 +117,48 @@ window.addEventListener('DOMContentLoaded', () => {
 
                 break;
                 case 1:
-                    if(connect.status) p.background(0);
-                    else p.background(color.r, color.g, color.b);
-
-                    p.fill(0);
-                    p.textSize(36);
-                    p.textStyle(p.BOLD);
-                    p.text("THIS ISN'T SOLO", p.width/2, p.height/2-110);
-                    p.textStyle(p.NORMAL);
-                    p.textSize(15);
-                    p.text("a live performance between the audience and an instrument", p.width/2, p.height/2-62, p.width-80, 60);
-
-                    for(var i = 0; i < 4; i++) {
-                        p.fill(255);
-                        p.stroke(0);
-                        p.rect(i*(p.width/4)+(p.width/4/2), (p.height/2)+50, 50, p.height-200);
-                    }
-
-
-                break;
                 case 2:
+                case 3:
+                case 4:
+                case 5:
+                    if(active == 0) {
+                        p.background(0);
 
-                    if(groupalone == 0 || (groupalone-1) == groupnum) {
-
-                        if(connect.status) p.background(255);
-                        else p.background(color.r, color.g, color.b);
-
-                        if(connect.status) {
-                            variable+=0.5;
-                        } else {
-                            variable-=0.5;
-                        }
-                        if(variable >= 100) variable = 100;
-                        if(variable <= 0) variable = 0;
-
-
-                        if(p.frameCount%5==0) {
-                            thevar.num = variable;
-                            sendAway();
-                        }   
-
-                        //TITLE
-                        p.noStroke();
-                        if(buttonPressed) p.fill(255);
-                        else p.fill(0);
-                        p.rectMode(p.CENTER);
-                        p.fill(0);
+                        p.fill(255);
                         p.textSize(36);
                         p.textStyle(p.BOLD);
                         p.text("THIS ISN'T SOLO", p.width/2, p.height/2-110);
                         p.textStyle(p.NORMAL);
                         p.textSize(15);
-                        p.text("a live performance between the audience and an instrument", p.width/2, p.height/2-62, p.width-80, 60);
+                        p.text("but your input is deactivated for now :)", p.width/2, p.height/2-62, p.width-80, 60);
 
-                        p.textSize(32);
-                        p.textStyle(p.BOLD);
-                        p.text("TOUCH THE SCREEN", p.width/2, p.height/2+50);
-                        p.textStyle(p.NORMAL);
-                        p.textSize(15);
-                        if(groupalone > 0) {
-                            p.text("when you release the slider you control the KNURL", p.width/2, p.height/2+97, p.width-80, 60);
-                        } else {
-                            p.text("watch & listen; your input is part of the performance", p.width/2, p.height/2+97, p.width-80, 60);
-                        }
-
-                        let mapvar = p.map(variable, 0, 100, 0, p.height);
-                        p.rectMode(p.CORNER);
-                        p.rect(0, p.height-mapvar, p.width, mapvar);
+                        p.text("group: " + (groupnum+1), p.width/2, p.height-50);
 
 
                     } else {
-                        p.background(0);
+                        p.background(color.r, color.g, color.b);
 
-                        p.noStroke();
-                        p.fill(255);
-                        p.textSize(35);
-                        p.text("THIS ISN'T SOLO", p.width/2, p.height/2-100);
+                        for(var i = 0; i < 4; i++) {
+                            if(sliders[i].isChanged) {
+                                //console.log(sliders[i].val);
+                            }
+                            if(sliders[i].isReleased) {
+                                //console.log('is released');
+                                sendAway(i, sliders[i].val);
+                            }
+                        }
 
-                        p.textStyle(p.NORMAL);
+                        p.fill(0);
                         p.textSize(15);
-                        p.text("but your input is deactivated for now :)", p.width/2, p.height/2);
+                        p.textStyle(p.BOLD);
+                        p.text("frequency", p.width/5, 50);
+                        p.text("volume", p.width/5*2, 50);
+                        p.text("filter", p.width/5*3, 50);
+                        p.text("line", p.width/5*4, 50);
+
+                        p.text("group: " + (groupnum+1), p.width/2, p.height-50);
+                        p.drawGui();
                     }
-
-                break;
-                case 3:
-                    if(connect.status) p.background(0);
-                    else p.background(color.r, color.g, color.b);
-
-                    p.fill(0);
-                    p.textSize(36);
-                    p.textStyle(p.BOLD);
-                    p.text("THIS ISN'T SOLO", p.width/2, p.height/2-110);
-                    p.textStyle(p.NORMAL);
-                    p.textSize(15);
-                    p.text("a live performance between the audience and an instrument", p.width/2, p.height/2-62, p.width-80, 60);
-
-                    p.textSize(32);
-                    p.textStyle(p.BOLD);
-                    p.text("TOUCH THE SCREEN", p.width/2, p.height/2+50);
-                    p.textStyle(p.NORMAL);
-                    p.textSize(15);
-                    p.text("try to hit the lines to play a melody", p.width/2, p.height/2+97, p.width-80, 60);
-
-                    //p.text("your input is part of the performance", p.width/2, p.height/2+90);
 
                 break;
                 case 9:
@@ -264,6 +197,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
 
             }
+
+            
             
         }
 
@@ -283,18 +218,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
             switch(state) {
                 case 1:
-                    connect.status = true;
-                    sendAway();
+                    //connect.status = true;
                 break;
                 case 2:
-                    connect.status = true;
-                    // variable++;
-                    // thevar.num = variable;
-                    // sendAway();
+                    //connect.status = true;
                 break;
                 case 3:
-                    connect.status = true;
-                    sendAway();
+                    //connect.status = true;
                 break;
                 default:
             }
@@ -306,16 +236,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
             switch(state) {
                 case 1:
-                    connect.status = false;
-                    sendAway();
+                    //connect.status = false;
                 break;
                 case 2:
-                    connect.status = false;
-                    sendAway();
+                    //connect.status = false;
                 break;
                 case 3:
-                    connect.status = false;
-                    sendAway();
+                    //connect.status = false;
                 break;
                 default:
             }
@@ -323,24 +250,55 @@ window.addEventListener('DOMContentLoaded', () => {
             //console.log('up is executed');
         }
 
-        function sendAway() {
+        function sendAway(slider, val) {
             // Send current state to server using topic "example:1:audience:state"
             start.status = connect.status;
-            
 
+            let thefilter = "";
+
+            switch(slider) {
+                case 0:
+                    thefilter = "freq";
+                break;
+                case 1:
+                    thefilter = "amp";
+                break;
+                case 2:
+                    thefilter = "filter";
+                break;
+                case 3:
+                    thefilter = "lin";
+                break;
+                default:
+            }
+
+            let thesound = "sound" + (groupnum+1);
+            let thevalue = p.map(p.floor(val), 0, 255, 0, 1);
+
+            oscMessage = {
+                path: "/knurl/change",
+                arguments: [ thesound , thefilter , thevalue]
+            };
+
+
+            starfish.topicPublish("example:2:osc", oscMessage);
+            console.log('message sent ' + JSON.stringify(oscMessage));
+            
             starfish.topicPublish("example:1:audience:state", {
                 color: color,
                 start: start,
                 finalgroupnum: finalgroupnum,
-                thevar: thevar,
-                thesize: thesize,
-                theradius: theradius,
-                thespeed: thespeed
             });
-
-            //we want to send the variables
-            //keep the click?
             
+            //sending to knurl
+
+
+            //
+        }
+
+        function sendAway_knurl() { 
+
+
         }
 
 

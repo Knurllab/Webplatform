@@ -6,8 +6,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
     const starfish = StarfishClient.build({
-        url: "ws://192.168.0.30:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
         //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
+        url: "ws://172.20.2.89:9000", // replace IP with the IP of the computer running the server
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -17,7 +18,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // document.getElementById("connection-status").innerText = "Connected";
 
         // Subscribe to topic "example:1:knurl:state" to receive knurl state
-        starfish.topic$('example:2:osc').subscribe(message => {
+        starfish.topic$('from:knurl').subscribe(message => {
             // update audience state
             knurl[message.headers.clientId] = message.body;
         });
@@ -41,6 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
   
         let state = 0;
         let alone = false;
+        let active = [1, 1, 1, 1];
 
         let numAudience =  Object.values(audience).length;
         
@@ -57,15 +59,43 @@ window.addEventListener('DOMContentLoaded', () => {
             numAudience = Object.values(audience).length;
 
             Object.values(audience).forEach((member, index) => {
-                //console.log(member);
+                const color = member.color;
+                const groupnum = member.finalgroupnum.num;
+                const thestatus = member.start.status;
+
+                //console.log(groupnum);
+                // if(thestatus) {
+                //     console.log(thestatus);
+                // }
+                
             });
 
             Object.values(knurl).forEach((member, index) => {
-                console.log("this is knurl" + member);
+                //console.log(member.arguments);
+                let thestuff = member.arguments;
+                let phase = thestuff[0];
+                //console.log("phase " + phase);
+                
+                if(state != phase) {
+                    state = phase;
+                    sendAway_audience();
+                }
+
+                console.log(thestuff);
+                if(active != thestuff.slice(1)) {
+                    active = thestuff.slice(1);
+                    sendAway_audience();
+                }
+                
+                //console.log(active);
+
             });
             
+            p.textAlign(p.CENTER);
+            p.textSize(30);
             p.fill(0);
             p.text('current state = ' + state, p.width/2, p.height/2);
+            p.text('active status = ' + active, p.width/2, p.height/2+40);
 
 
             
@@ -75,18 +105,32 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if(p.key == 't') sendAway_knurl(1, p.random(1), p.random(1), p.random(1), p.random(1));  
 
+            if(p.key == 's') {
+                state+=1;
+                if(state >= 4) state = 0;
+                sendAway_audience();
+            }
+
+            if(p.key == 'd') {
+                active = [0, 1, 0, 1];
+                sendAway_audience();
+            }
+
+            if(p.key == 'f') {
+                active = [1, 1, 1, 1];
+                sendAway_audience();
+            }
+
         }
 
         p.mousePressed = () => {
-            state+=1;
-            if(state >= 4) state = 0;
             sendAway_audience();
         }
 
 
-        function sendAway_knurl(thegroup, var1, var2, var3, var4) {
+        function sendAway_knurl(thegroup, theslider, thevar) {
             //first also send away to audience to make sure everyone is in the right state
-            sendAway_audience();
+            //sendAway_audience();
 
             // Send an osc package with freq, amp, lin & mul
 
@@ -149,7 +193,7 @@ window.addEventListener('DOMContentLoaded', () => {
         function sendAway_audience() {
             starfish.topicPublish("example:1:core:state", {
                 state: state,
-                alone: alone
+                active: active
             });
             
         }

@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const starfish = StarfishClient.build({
         //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
         //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
-        url: "ws://172.20.2.89:9000", // replace IP with the IP of the computer running the server
+        url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -61,12 +61,13 @@ window.addEventListener('DOMContentLoaded', () => {
             Object.values(audience).forEach((member, index) => {
                 const color = member.color;
                 const groupnum = member.finalgroupnum.num;
-                const thestatus = member.start.status;
+                const slideval = member.slideval;
 
-                //console.log(groupnum);
-                // if(thestatus) {
-                //     console.log(thestatus);
-                // }
+                //console.log(slideval);
+
+                p.textSize(10);
+                p.textAlign(p.LEFT);
+                p.text('client ' + index + ' sliders ' + slideval, 10, p.height/4+ index*15 + 100);
                 
             });
 
@@ -94,8 +95,8 @@ window.addEventListener('DOMContentLoaded', () => {
             p.textAlign(p.CENTER);
             p.textSize(30);
             p.fill(0);
-            p.text('current state = ' + state, p.width/2, p.height/2);
-            p.text('active status = ' + active, p.width/2, p.height/2+40);
+            p.text('current state = ' + state, p.width/2, p.height/4);
+            p.text('active status = ' + active, p.width/2, p.height/4+40);
 
 
             
@@ -112,7 +113,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             if(p.key == 'd') {
-                active = [0, 1, 0, 1];
+                active = [p.floor(p.random(2)), p.floor(p.random(2)), p.floor(p.random(2)), p.floor(p.random(2))];
                 sendAway_audience();
             }
 

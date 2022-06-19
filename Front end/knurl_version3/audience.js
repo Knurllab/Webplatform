@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const starfish = StarfishClient.build({
         //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
         //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
-        url: "ws://172.20.2.89:9000", // replace IP with the IP of the computer running the server
+        url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -27,43 +27,39 @@ window.addEventListener('DOMContentLoaded', () => {
 
         let gui;
         let sliders = [];
+        let slideval = [];
 
         let state = 0;
 
         let groupnum;
         let active = 1;
 
-        let variable = 0;
-
-        //send / click interaction
-        let downready = true;
-        let isdown = false;
+        let recActive;
+        let recState;
 
         let c = []; //color array
 
-        // Choose color
+        // values to send
         let color = { r: 0, g: 0, b: 0 }
-        const start = { status: false };
-        const connect =  { status: false }; //whats the difference between connect & start?
         const finalgroupnum = { num: 0 };
-
-        const thevar = { num: 0 };
 
         p.setup = () => {
             let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
             gui = p.createGui(canvas);
-            sliders[0] = p.createSliderV("Slider"+0, p.width/5*1-20, 100, 40, p.height-200, 25, 250);
-            sliders[1] = p.createSliderV("Slider"+1, p.width/5*2-20, 100, 40, p.height-200, 25, 250);
-            sliders[2] = p.createSliderV("Slider"+2, p.width/5*3-20, 100, 40, p.height-200, 25, 250);
-            sliders[3] = p.createSliderV("Slider"+3, p.width/5*4-20, 100, 40, p.height-200, 25, 250);
+            sliders[0] = p.createSliderV("Slider"+0, p.width/5*1-20, 100, 40, p.height-200);
+            sliders[1] = p.createSliderV("Slider"+1, p.width/5*2-20, 100, 40, p.height-200);
+            sliders[2] = p.createSliderV("Slider"+2, p.width/5*3-20, 100, 40, p.height-200);
+            sliders[3] = p.createSliderV("Slider"+3, p.width/5*4-20, 100, 40, p.height-200);
             
+
+            for(var i = 0; i < 4; i++) {
+                slideval[i] = 0.5;
+            }
+
             p.rectMode(p.CENTER);
             p.textAlign(p.CENTER);
             p.textSize(18);
 
-            groupnum = p.floor(p.random(4));
-
-            finalgroupnum.num = groupnum;
 
             p.colorMode(p.HSB, 100);
             //244°, 71%, 76%
@@ -73,10 +69,19 @@ window.addEventListener('DOMContentLoaded', () => {
             c[3] = p.createVector(70, p.random(20, 50), p.random(200, 255));
 
 
-            let select = groupnum;
-            // console.log(select);
-            // console.log(c[select].x);
+            //CHECK URL PARAMETERS FOR GROUPNUM!!!
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            const group_present = urlParams.has('group');
+            if(group_present) {
+                groupnum = parseInt(urlParams.get('group'));
+            } else {
+                groupnum = p.floor(p.random(4));
+            }
+            
+            finalgroupnum.num = groupnum;
 
+            let select = groupnum;
             color = { r: c[select].x, g: c[select].y, b: c[select].z };
 
         }
@@ -85,8 +90,9 @@ window.addEventListener('DOMContentLoaded', () => {
             p.background(255);
 
             Object.values(core).forEach(member => {
-                const recState = member.state;
-                const recActive = member.active;
+                recState = member.state;
+                recActive = member.active;
+
                 //console.log(recActive);
                 active = recActive[groupnum];
                 //console.log(active);
@@ -143,8 +149,9 @@ window.addEventListener('DOMContentLoaded', () => {
                                 //console.log(sliders[i].val);
                             }
                             if(sliders[i].isReleased) {
-                                //console.log('is released');
-                                sendAway(i, sliders[i].val);
+                                slideval[i] = sliders[i].val;
+                                //console.log(slideval);
+                                sendAway(i, slideval[i]);
                             }
                         }
 
@@ -185,19 +192,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 default:
 
             }
-
-            if(!downready && start.status) {
-                timerready--;
-                if(timerready<=0) {
-                    downready = true;
-                    timerready = startTimer;
-
-                    start.status = false;
-                    sendAway(); //send message to reset core
-                }
-
-            }
-
             
             
         }
@@ -218,13 +212,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
             switch(state) {
                 case 1:
-                    //connect.status = true;
+
                 break;
                 case 2:
-                    //connect.status = true;
+
                 break;
                 case 3:
-                    //connect.status = true;
+
                 break;
                 default:
             }
@@ -236,13 +230,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
             switch(state) {
                 case 1:
-                    //connect.status = false;
+
                 break;
                 case 2:
-                    //connect.status = false;
+
                 break;
                 case 3:
-                    //connect.status = false;
+
                 break;
                 default:
             }
@@ -251,8 +245,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         function sendAway(slider, val) {
-            // Send current state to server using topic "example:1:audience:state"
-            start.status = connect.status;
 
             let thefilter = "";
 
@@ -273,33 +265,29 @@ window.addEventListener('DOMContentLoaded', () => {
             }
 
             let thesound = "sound" + (groupnum+1);
-            let thevalue = p.map(p.floor(val), 0, 255, 0, 1);
 
             oscMessage = {
                 path: "/knurl/change",
-                arguments: [ thesound , thefilter , thevalue]
+                arguments: [ thesound , thefilter , val]
             };
 
 
+            //SENDING TO KNURL////////////
             starfish.topicPublish("example:2:osc", oscMessage);
             console.log('message sent ' + JSON.stringify(oscMessage));
             
+            //SENDING TO VISUALS//////////
             starfish.topicPublish("example:1:audience:state", {
+                // state: recState,
+                // active: recActive,
                 color: color,
-                start: start,
                 finalgroupnum: finalgroupnum,
+                slideval: slideval,
+
             });
             
-            //sending to knurl
-
-
-            //
         }
 
-        function sendAway_knurl() { 
-
-
-        }
 
 
     }, document.getElementById('container'))

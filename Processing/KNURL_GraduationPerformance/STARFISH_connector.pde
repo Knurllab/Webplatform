@@ -2,23 +2,12 @@
 class starfishConnector {
   
   //MAKE SURE YOU SET THE RIGHT IP ADDRESS HERE
+  //final StarfishClient starfish = new StarfishClient("ws://192.168.0.145:9000");
   final StarfishClient starfish = new StarfishClient("ws://192.168.178.11:9000");
+  //final StarfishClient starfish = new StarfishClient("ws://192.168.4.69:9000");
   String clientId;
   
-  class AudienceData {
-    color kleur; 
-    int groupnum;
-    float[] thesliders = new float[4];
-  }
-  
-  Map<String, AudienceData> audience = new HashMap<String, AudienceData>();
-  
-  class CoreData {
-    int state;
-    int[] active = new int[4];
-  }
-  
-  Map<String, CoreData> core = new HashMap<String, CoreData>();
+  int[] clientspergroup = new int[4];
   
   starfishConnector() {
     try {
@@ -36,13 +25,17 @@ class starfishConnector {
         AudienceData data = new AudienceData();
         
         //System.out.println(arguments.get(0).get("r"));
-        data.kleur = color(arguments.get(0).get("r").intValue(), arguments.get(0).get("g").intValue(), arguments.get(0).get("b").intValue());
+        data.kleur[0] = arguments.get(0).get("r").intValue();
+        data.kleur[1] = arguments.get(0).get("g").intValue();
+        data.kleur[2] = arguments.get(0).get("b").intValue();
         data.groupnum = arguments.get(1).get("num").intValue();
         data.thesliders[0] = arguments.get(2).get(0).floatValue();
         data.thesliders[1] = arguments.get(2).get(1).floatValue();
         data.thesliders[2] = arguments.get(2).get(2).floatValue();
         data.thesliders[3] = arguments.get(2).get(3).floatValue();
   
+        data.connect = arguments.get(3).get("status").intValue();
+        
         audience.put(clientId, data);
         
       });
@@ -59,7 +52,7 @@ class starfishConnector {
         data.active[1] = arguments.get(1).get(1).intValue();
         data.active[2] = arguments.get(1).get(2).intValue();
         data.active[3] = arguments.get(1).get(3).intValue();
-  
+          
         core.put(clientId, data);
       
       });
@@ -74,29 +67,41 @@ class starfishConnector {
     
     //keep track of connected clients
     for(int i = 0; i < 4; i++) {
-     isconnected[i] = 0;
+      isconnected[i] = 0;
+      clickconnect[i] = 0;
+    }
+    
+    for(int i = 0; i < 4; i++) {
+      clientspergroup[i] = 0;
+      for(int j = 0; j < 4; j++) {
+        avgsliders[i][j] = 0; 
+      }
     }
     
     audience.forEach((id, data) -> {    
       int thegroupnum = data.groupnum;
       isconnected[thegroupnum] += 1;
-      float[] sliders = data.thesliders;
-      
-      //fill(data.kleur);
-      //rect(width/4*thegroupnum, 0, width/4, height);
-      
-      //for(int i = 0; i < 4; i++) {
-      //  fill(0, 50);
-      //  rect(width/4*thegroupnum+width/16*i, 0, width/16, height-sliders[i]*height);
-      //}
+      clickconnect[thegroupnum] += data.connect;
+     
+      clientspergroup[data.groupnum]++;
+      for(int j = 0; j < 4; j++) {
+        avgsliders[data.groupnum][j]+=data.thesliders[j];
+      }
       
     });
+    
+    for(int i = 0; i < 4; i++) {
+      for(int j = 0; j < 4; j++) {
+        avgsliders[i][j] = avgsliders[i][j]/clientspergroup[i];
+      } 
+    }
   
-    core.forEach((id, data) -> {
-      
+    core.forEach((id, data) -> { 
       if(STATE != data.state) {
         changeState(data.state); 
       }
+      
+      isactive = data.active;
       
     });
     

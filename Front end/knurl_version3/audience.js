@@ -4,9 +4,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const core = {};
 
     const starfish = StarfishClient.build({
-        //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
-        //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
-        url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
+        url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://192.168.4.69:9000"
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -40,16 +40,20 @@ window.addEventListener('DOMContentLoaded', () => {
         let c = []; //color array
 
         // values to send
+        let connect = { status: 0 };
         let color = { r: 0, g: 0, b: 0 }
         const finalgroupnum = { num: 0 };
 
         p.setup = () => {
             let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
             gui = p.createGui(canvas);
-            sliders[0] = p.createSliderV("Slider"+0, p.width/5*1-20, 100, 40, p.height-200);
-            sliders[1] = p.createSliderV("Slider"+1, p.width/5*2-20, 100, 40, p.height-200);
-            sliders[2] = p.createSliderV("Slider"+2, p.width/5*3-20, 100, 40, p.height-200);
-            sliders[3] = p.createSliderV("Slider"+3, p.width/5*4-20, 100, 40, p.height-200);
+            gui.loadStyle("Blue");
+            gui.setStrokeWeight(3);
+            //gui.setTrackWidth(0);
+            sliders[0] = p.createSliderV("Slider"+0, p.width/5*1-20, 80, 40, p.height-180);
+            sliders[1] = p.createSliderV("Slider"+1, p.width/5*2-20, 80, 40, p.height-180);
+            sliders[2] = p.createSliderV("Slider"+2, p.width/5*3-20, 80, 40, p.height-180);
+            sliders[3] = p.createSliderV("Slider"+3, p.width/5*4-20, 80, 40, p.height-180);
             
 
             for(var i = 0; i < 4; i++) {
@@ -65,7 +69,7 @@ window.addEventListener('DOMContentLoaded', () => {
             //244°, 71%, 76%
             c[0] = p.createVector(50, p.random(20, 50), p.random(200, 255));
             c[1] = p.createVector(60, p.random(20, 50), p.random(200, 255));
-            c[2] = p.createVector(255, 0, 100);
+            c[2] = p.createVector(0, 0, 100);
             c[3] = p.createVector(70, p.random(20, 50), p.random(200, 255));
 
 
@@ -105,21 +109,51 @@ window.addEventListener('DOMContentLoaded', () => {
                 //console.log(recState);
             })
 
+            let title = "";
+            switch(groupnum) {
+                case 0:
+                    title = "ATMOSPHERE";
+                    break;
+                case 1:
+                    title = "RECORDER / SYNTHESIS";
+                    break;
+                case 2:
+                    title = "PERCUSSION";
+                    break;
+                case 3:
+                    title = "NOISE";
+                    break;
+            }
+
 
             switch(state) { 
                 case 0:
-                    p.background(color.r, color.g, color.b);
+                    //p.background(color.r, color.g, color.b);
+                    if(connect.status) p.background(0);
+                    else p.background(color.r, color.g, color.b);
 
                     p.fill(0);
                     p.textSize(36);
                     p.textStyle(p.BOLD);
                     p.text("THIS ISN'T SOLO", p.width/2, p.height/2-110);
-                    p.textStyle(p.NORMAL);
+                    
                     p.textSize(15);
+                    p.textStyle(p.NORMAL);
                     p.text("a live performance between the audience and an instrument", p.width/2, p.height/2-62, p.width-80, 60);
-                    p.text("please wait...", p.width/2, p.height/2, p.width-80, 60);
+                    p.textSize(15);
+                    p.textStyle(p.NORMAL);
+                    p.text("enter the performance space and tap this screen to find your seat; marked by circles in the floor projection", p.width/2, p.height/2+30, p.width-80, 60);
 
-                    p.text("I am in group number: " + groupnum, p.width/2, p.height/2+100)
+                    //p.textStyle(p.BOLD);
+                    //p.text("you are in group: " + title, p.width/2, p.height/2+100);
+                    p.textStyle(p.NORMAL);
+                    p.text("keep this window open and your phone connected to the KNURL wifi (no internet) feel free to tap the screen anytime to check the connection", p.width/2, p.height/2+150, p.width-80, 90);
+
+                    p.text("you are in group:", p.width/2, p.height-80);
+                    p.textStyle(p.BOLD);
+                    p.textSize(20);
+                    p.text(title, p.width/2, p.height-50);
+
 
                 break;
                 case 1:
@@ -127,8 +161,11 @@ window.addEventListener('DOMContentLoaded', () => {
                 case 3:
                 case 4:
                 case 5:
+                case 6:
+                case 7:
                     if(active == 0) {
-                        p.background(0);
+                        if(connect.status) p.background(50);
+                        else p.background(0);
 
                         p.fill(255);
                         p.textSize(36);
@@ -138,11 +175,26 @@ window.addEventListener('DOMContentLoaded', () => {
                         p.textSize(15);
                         p.text("but your input is deactivated for now :)", p.width/2, p.height/2-62, p.width-80, 60);
 
-                        p.text("group: " + (groupnum+1), p.width/2, p.height-50);
+                        p.textStyle(p.BOLD);
+                        p.textSize(20);
+                        p.text(title, p.width/2, p.height-50);
 
 
                     } else {
-                        p.background(color.r, color.g, color.b);
+
+
+                        var changed;
+                        //hehe bit messy but works
+                        if(groupnum == 3) changed = p.createVector(color.r+slideval[2]*30, color.g, color.b);
+                        else if (groupnum == 2) changed = p.createVector(color.r+slideval[2]*15, color.g+slideval[2]*30, color.b);
+                        else if(groupnum == 1) changed = p.createVector(color.r+slideval[2]*60, color.g-slideval[2]*10, color.b);
+                        else changed = p.createVector(color.r-slideval[2]*30, color.g, color.b);
+                        //console.log(changed);
+
+                        if(connect.status) p.background(255);
+                        else p.background(changed.x, changed.y, changed.z);
+
+
 
                         for(var i = 0; i < 4; i++) {
                             if(sliders[i].isChanged) {
@@ -155,20 +207,79 @@ window.addEventListener('DOMContentLoaded', () => {
                             }
                         }
 
-                        p.fill(0);
-                        p.textSize(15);
-                        p.textStyle(p.BOLD);
-                        p.text("frequency", p.width/5, 50);
-                        p.text("volume", p.width/5*2, 50);
-                        p.text("filter", p.width/5*3, 50);
-                        p.text("line", p.width/5*4, 50);
+                        p.textSize(14);
+                        p.fill(70);
+                        p.textStyle(p.NORMAL);
+                        p.text("watch & listen as you interact", p.width/2, 65, p.width-80, 60);
 
-                        p.text("group: " + (groupnum+1), p.width/2, p.height-50);
+
+                        p.fill(70);
+                        p.textSize(15);
+                        p.textStyle(p.NORMAL);
+
+                        p.textAlign(p.LEFT);
+
+                        p.push();
+                        p.translate(p.width/5-28, p.height-110);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("number of particles", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.translate(p.width/5*2-28, p.height-110);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("size of particles", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.translate(p.width/5*3-28, p.height-110);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("color of particles", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.translate(p.width/5*4-28, p.height-110);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("movement of particles", 0, 0);
+                        p.pop();
+                        
+                        p.textAlign(p.RIGHT);
+
+                        p.fill(0);
+                        p.push();                     
+                        p.translate(p.width/5-28, 80);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("pitch", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.textAlign(p.RIGHT);
+                        p.translate(p.width/5*2-28, 80);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("volume", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.translate(p.width/5*3-28, 80);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("filter", 0, 0);
+                        p.pop();
+
+                        p.push();
+                        p.translate(p.width/5*4-28, 80);
+                        p.rotate(-p.HALF_PI);     
+                        p.text("movement", 0, 0);
+                        p.pop();
+
+                        p.textStyle(p.BOLD);
+                        p.textAlign(p.CENTER);
+                        p.textSize(20);
+                        p.text(title, p.width/2, p.height-50);
                         p.drawGui();
                     }
 
                 break;
-                case 9:
+                case 8:
                     //p.background(0);
                     p.background(p.random(0, 50), p.random(0, 50), p.random(0, 50));
 
@@ -196,6 +307,11 @@ window.addEventListener('DOMContentLoaded', () => {
             
         }
 
+        function touchMoved() {
+          // do some stuff
+          return false;
+        }
+
         p.touchStarted = () => { 
             down(); 
         }
@@ -210,36 +326,50 @@ window.addEventListener('DOMContentLoaded', () => {
 
         function down() {
 
-            switch(state) {
-                case 1:
+            connect.status = 1;
+            sendPing();
 
-                break;
-                case 2:
+            // switch(state) {
+            //     case 0:
+            //         connect.status = 1;
+            //         sendPing();
+            //     break;
+            //     case 1:
+                    
+            //     break;
+            //     case 2:
 
-                break;
-                case 3:
+            //     break;
+            //     case 3:
 
-                break;
-                default:
-            }
+            //     break;
+            //     default:
+            // }
 
             //console.log('down is executed');
         }
 
         function up() {
 
-            switch(state) {
-                case 1:
+            connect.status = 0;
+            sendPing();
 
-                break;
-                case 2:
+            // switch(state) {
+            //     case 0:
+            //         connect.status = 0;
+            //         sendPing();
+            //     break;
+            //     case 1:
 
-                break;
-                case 3:
+            //     break;
+            //     case 2:
 
-                break;
-                default:
-            }
+            //     break;
+            //     case 3:
+
+            //     break;
+            //     default:
+            // }
 
             //console.log('up is executed');
         }
@@ -274,7 +404,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             //SENDING TO KNURL////////////
             starfish.topicPublish("example:2:osc", oscMessage);
-            console.log('message sent ' + JSON.stringify(oscMessage));
+            //console.log('message sent ' + JSON.stringify(oscMessage));
             
             //SENDING TO VISUALS//////////
             starfish.topicPublish("example:1:audience:state", {
@@ -283,14 +413,26 @@ window.addEventListener('DOMContentLoaded', () => {
                 color: color,
                 finalgroupnum: finalgroupnum,
                 slideval: slideval,
-
+                connect: connect,
             });
             
+        }
+
+        function sendPing() {
+            //SENDING TO VISUALS//////////
+            starfish.topicPublish("example:1:audience:state", {
+                // state: recState,
+                // active: recActive,
+                color: color,
+                finalgroupnum: finalgroupnum,
+                slideval: slideval,
+                connect: connect,
+            });
+
+            //console.log('message sent');
         }
 
 
 
     }, document.getElementById('container'))
 });
-
-

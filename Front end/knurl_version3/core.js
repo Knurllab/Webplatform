@@ -6,9 +6,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
     const starfish = StarfishClient.build({
-        //url: "ws://127.0.0.1:9000", // replace IP with the IP of the computer running the server
-        //url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
-        url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
+        url: "ws://192.168.0.145:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://192.168.178.11:9000", // replace IP with the IP of the computer running the server
+        //url: "ws://192.168.4.69:9000"
         //url: "ws://starfish.driangle.org:9000"
     });
 
@@ -43,8 +43,14 @@ window.addEventListener('DOMContentLoaded', () => {
         let state = 0;
         let alone = false;
         let active = [1, 1, 1, 1];
+        const connect = { status: false };
 
         let numAudience =  Object.values(audience).length;
+
+        let independent = false;
+
+        let saveTime = 10000;
+        let waitTime = 3000;
         
 
         p.setup = () => {
@@ -62,8 +68,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 const color = member.color;
                 const groupnum = member.finalgroupnum.num;
                 const slideval = member.slideval;
+                //const connect = member.connect.status;
 
-                //console.log(slideval);
+                connect.status = member.connect.status;
+                //console.log(member.connect.status);
 
                 p.textSize(10);
                 p.textAlign(p.LEFT);
@@ -75,22 +83,30 @@ window.addEventListener('DOMContentLoaded', () => {
                 //console.log(member.arguments);
                 let thestuff = member.arguments;
                 let phase = thestuff[0];
-                //console.log("phase " + phase);
                 
-                if(state != phase) {
-                    state = phase;
-                    sendAway_audience();
+                if(!independent) {
+                    if(state != phase) {
+                        state = phase;
+                        sendAway_audience();
+                    }
+
+                    console.log(thestuff);
+                    if(active != thestuff.slice(1)) {
+                        active = thestuff.slice(1);
+                        sendAway_audience();
+                    }
+
                 }
 
-                console.log(thestuff);
-                if(active != thestuff.slice(1)) {
-                    active = thestuff.slice(1);
-                    sendAway_audience();
-                }
-                
-                //console.log(active);
 
             });
+
+            //timer to send away to audience?
+            if(p.millis()-saveTime > waitTime) {
+                sendAway_audience();
+                saveTime = p.millis();
+                console.log('sending ping to audience');
+            }
             
             p.textAlign(p.CENTER);
             p.textSize(30);
@@ -108,7 +124,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if(p.key == 's') {
                 state+=1;
-                if(state >= 4) state = 0;
+                if(state >= 9) state = 0;
                 sendAway_audience();
             }
 
@@ -120,6 +136,11 @@ window.addEventListener('DOMContentLoaded', () => {
             if(p.key == 'f') {
                 active = [1, 1, 1, 1];
                 sendAway_audience();
+            }
+
+            if(p.key == 'q') {
+                independent = !independent;
+                console.log('I AM INDEPENDENT ' + independent);
             }
 
         }
@@ -162,19 +183,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
             oscMessage0 = {
                 path: "/knurl/change",
-                arguments: [ theSynth , 'freq' , p.round(var1, 2)]
+                arguments: [ theSynth , 'freq' , p.round(thevar, 2)]
             };
             oscMessage1 = {
                 path: "/knurl/change",
-                arguments: [ theSynth , 'amp' , p.round(var2, 2) ]
+                arguments: [ theSynth , 'amp' , p.round(thevar, 2) ]
             };
             oscMessage2 = {
                 path: "/knurl/change",
-                arguments: [ theSynth , 'filter' , p.round(var3, 2) ]
+                arguments: [ theSynth , 'filter' , p.round(thevar, 2) ]
             };
             oscMessage3 = {
                 path: "/knurl/change",
-                arguments: [ theSynth , 'lin' , p.round(var4, 2) ]
+                arguments: [ theSynth , 'lin' , p.round(thevar, 2) ]
             };
 
             console.log('message sent 0 ' + JSON.stringify(oscMessage0));
@@ -186,7 +207,6 @@ window.addEventListener('DOMContentLoaded', () => {
             starfish.topicPublish("example:2:osc", oscMessage1);
             starfish.topicPublish("example:2:osc", oscMessage2);
             starfish.topicPublish("example:2:osc", oscMessage3);
-
    
             
         }
@@ -194,7 +214,7 @@ window.addEventListener('DOMContentLoaded', () => {
         function sendAway_audience() {
             starfish.topicPublish("example:1:core:state", {
                 state: state,
-                active: active
+                active: active,
             });
             
         }
